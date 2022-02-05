@@ -6,69 +6,56 @@ import (
 
 type Event struct {
 	database database
+	event    models.Event
 }
 
-func NewEvent(database database) *Event {
-	return &Event{database: database}
+func NewEvent(database database, event models.Event) *Event {
+	return &Event{database: database, event: event}
 }
 
-func (e Event) Create(event models.Event) (err error) {
+func (e *Event) Create(event models.Event) (models.Event, error) {
 	connection, err := e.database.Connection()
 	if err != nil {
-		return err
+		return event, err
 	}
 	result := connection.Create(event)
-	if result.Error != nil {
-		return result.Error
-	}
-	return
+	return event, result.Error
 }
 
-func (e Event) Update(event interface{}) (err error) {
+func (e *Event) Update(event interface{}, id uint) (models.Event, error) {
 	connection, err := e.database.Connection()
 	if err != nil {
-		return err
+		return e.event, err
 	}
-	result := connection.Save(event)
-	if result.Error != nil {
-		return result.Error
-	}
-	return
+	e.event.ID = id
+	result := connection.Model(&e.event).Updates(event)
+	return e.event, result.Error
 }
 
-func (e Event) Find(event *models.Event, id int) (err error) {
+func (e *Event) Find(id uint) (models.Event, error) {
 	connection, err := e.database.Connection()
 	if err != nil {
-		return err
+		return e.event, err
 	}
-	result := connection.First(event, id)
-	if result.Error != nil {
-		return result.Error
-	}
-	return
+	result := connection.First(&e.event, id)
+	return e.event, result.Error
 }
 
-func (e Event) list(model interface{}, id, limit int) (map[string]models.Event, error) {
-	mapEvent := make(map[string]models.Event)
+func (e *Event) List(id uint, limit int) (map[int]models.Event, error) {
+	mapEvent := make(map[int]models.Event)
 	connection, err := e.database.Connection()
 	if err != nil {
 		return mapEvent, err
 	}
-	result := connection.Model(model).Limit(limit).Where("id = ?", id).Take(mapEvent)
-	if result.Error != nil {
-		return mapEvent, err
-	}
-	return mapEvent, nil
+	result := connection.Model(&e.event).Limit(limit).Where("id = ?", id).Take(mapEvent)
+	return mapEvent, result.Error
 }
 
-func (e Event) delete(id int) (err error) {
+func (e *Event) Delete(id uint) (err error) {
 	connection, err := e.database.Connection()
 	if err != nil {
 		return err
 	}
 	result := connection.Delete(&models.Event{}, id)
-	if result.Error != nil {
-		return result.Error
-	}
-	return
+	return result.Error
 }

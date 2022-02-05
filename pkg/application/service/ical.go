@@ -24,6 +24,7 @@ func (c *ICal) fill(event *Event) (err error) {
 }
 
 func (c *ICal) yearly() (err error) {
+
 	return
 }
 

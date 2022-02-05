@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/3110Y/reminder/pkg/Domain/models"
 	"github.com/3110Y/reminder/pkg/application/service"
 	"github.com/3110Y/reminder/pkg/infrastructure/database"
 	"github.com/3110Y/reminder/pkg/infrastructure/repository"
@@ -20,10 +21,10 @@ func main() {
 	port := os.Getenv("PORT")
 	router := chi.NewRouter()
 	db := database.NewProviderGorm()
-	eventRepository := repository.NewEvent(db)
+	eventRepository := repository.NewEvent(db, models.Event{})
 	eventService := service.NewEventService(eventRepository)
 	router.Post("/api/rest/v1/event", event.Add{Event: eventService}.ServeHTTP)
-	router.Get("/api/rest/v1/event", event.List{Event: eventService}.ServeHTTP)
+	router.Get("/api/rest/v1/event/{id}/{limit}", event.List{Event: eventService}.ServeHTTP)
 	router.Put("/api/rest/v1/event/{id}", event.Edit{Event: eventService}.ServeHTTP)
 	router.Get("/api/rest/v1/event/{id}", event.Get{Event: eventService}.ServeHTTP)
 	router.Delete("/api/rest/v1/event/{id}", event.Delete{Event: eventService}.ServeHTTP)
