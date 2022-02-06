@@ -16,11 +16,11 @@ build:
 
 .PHONY: build-service
 build-service:
-	go build -mod=vendor -o .\build\reminder\main .\cmd\reminder\main.go
+	go build -mod=vendor -o .\build\bin\main .\cmd\bin\main.go
 
 .PHONY: build-migration
 build-migration:
-	go build -mod=vendor -o .\build\reminder\migration .\cmd\migration\main.go
+	go build -mod=vendor -o .\build\bin\migration .\cmd\bin\main.go
 
 .PHONY: run
 run:

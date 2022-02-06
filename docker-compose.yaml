@@ -1,0 +1,35 @@
+# docker/docker-compose.yml
+version: '3.4'
+
+networks:
+  database:
+
+services:
+  reminder-test:
+    build:
+      context: ./build/dockerfiles/golang
+      target: golang_test
+    volumes:
+      - ./src:/go/src
+    networks:
+      - database
+  reminder-dev: &dev
+    build:
+      context: ./build/dockerfiles/golang
+      target: golang_dev
+    ports:
+      - "8080:8080"
+    security_opt:
+      - seccomp:unconfined
+    cap_add:
+      - SYS_PTRACE
+    networks:
+      - database
+  reminder-prod:
+    <<: *dev
+    build:
+      context: ./build/dockerfiles/golang
+      target: golang_prod
+    networks:
+      - database
+
