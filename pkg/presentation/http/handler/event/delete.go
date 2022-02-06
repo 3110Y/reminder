@@ -11,7 +11,7 @@ type Delete struct {
 	Event *service.EventService
 }
 
-func (d *Delete) ServeHTTP(response http.ResponseWriter, request *http.Request) {
+func (d Delete) ServeHTTP(response http.ResponseWriter, request *http.Request) {
 	eventIDString := chi.URLParam(request, "id")
 	eventID, err := strconv.ParseUint(eventIDString, 10, 64)
 	if err != nil {

@@ -12,7 +12,7 @@ type Edit struct {
 	Event *service.EventService
 }
 
-func (e *Edit) ServeHTTP(response http.ResponseWriter, request *http.Request) {
+func (e Edit) ServeHTTP(response http.ResponseWriter, request *http.Request) {
 	eventIDString := chi.URLParam(request, "id")
 	eventID, err := strconv.ParseUint(eventIDString, 10, 64)
 	if err != nil {
