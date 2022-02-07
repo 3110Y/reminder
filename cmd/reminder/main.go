@@ -18,7 +18,7 @@ func main() {
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
-	port := os.Getenv("PORT")
+	port := os.Getenv("APP_PORT")
 	router := chi.NewRouter()
 	db := database.NewProviderGorm()
 	eventRepository := repository.NewEvent(db, models.Event{})

@@ -7,46 +7,90 @@ networks:
 
 services:
   reminder-test:
+    environment:
+      - POSTGRES_HOST=reminder-database-test
+      - POSTGRES_PORT=${DATABASE_PORT}
+      - POSTGRES_USER=${DATABASE_USER}_test
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}_test
+      - POSTGRES_DB=${DATABASE_DB}_test
     build:
-      context: ./build/dockerfiles/golang
+      context: .
+      dockerfile: ./build/dockerfiles/golang/Dockerfile
       target: golang_test
+    env_file:
+      - .env
     volumes:
-      - ./src:/go/src
+      - ./:/go/src
     networks:
-      - database
+      - database-test
+    depends_on:
+      reminder-database-test:
+        condition: service_healthy
 
   reminder-dev: &dev
     build:
-      context: ./build/dockerfiles/golang
+      context: .
+      dockerfile: ./build/dockerfiles/golang/Dockerfile
       target: golang_dev
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_HOST=reminder-database
+      - POSTGRES_PORT=${DATABASE_PORT}
+      - POSTGRES_USER=${DATABASE_USER}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+      - POSTGRES_DB=${DATABASE_DB}
     ports:
-      - "8080:8080"
+      - 8080:${APP_PORT}
     security_opt:
       - seccomp:unconfined
     cap_add:
       - SYS_PTRACE
+    depends_on:
+      reminder-database-test:
+        condition: service_healthy
     networks:
-      - database-test
+      - database
 
   reminder-prod:
     <<: *dev
     build:
-      context: ./build/dockerfiles/golang
+      context: .
+      dockerfile: ./build/dockerfiles/golang/Dockerfile
       target: golang_prod
     networks:
       - database
 
   reminder-database: &database
-    container_name: gateway-database
-    build: postgres:latest
+    container_name: reminder-database
+    image: postgres:14.1
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-q", "-d", "${DATABASE_DB}", "-U", "${DATABASE_USER}" ]
+      timeout: 45s
+      interval: 2s
+      retries: 10
+    env_file:
+      - .env
     environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${DATABASE_USER}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+      - POSTGRES_DB=${DATABASE_DB}
+    volumes:
+      - reminder-database:/var/lib/postgresql/data:delegated
     networks:
       - database
 
   reminder-database-test:
     <<: *database
+    environment:
+      - POSTGRES_USER=${DATABASE_USER}_test
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}_test
+      - POSTGRES_DB=${DATABASE_DB}_test
+    volumes:
+      - reminder-database-test:/var/lib/postgresql/data:delegated
     networks:
       - database-test
+
+volumes:
+  reminder-database: { }
+  reminder-database-test: { }
